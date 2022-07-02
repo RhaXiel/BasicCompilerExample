@@ -3,9 +3,17 @@ const readLine = require('readline')
 
 const expresion = /^(\bDeclarar\b)([ ]+[a-z\sA-Z\s\_\s]+)([=][ ]+[a-z\sA-Z\s\d\s]+)?[\.\b]/
 
+
+const tablaSimbolos = [
+    'sumar',
+    'con',
+    '=',
+]
+
 const lexer = str => {
     return str.split(' ').map(item => {
-        if(!item.toString().startsWith('//')){
+        //if (!item.toString().startsWith('//')) {
+        if (!(/(^\/\/)/.test(item.toString()))) {
             return item.trim();
         }
     })
@@ -51,38 +59,38 @@ const analizadorSintactico = async () => {
 
     let numeroLinea = 1
     let resultado = []
-    let erroresCompilacion =[]
+    let erroresCompilacion = []
 
     for await (const linea of rl) {
-        
-        
+
         //console.log("transpilacion: ", numeroLinea, resultado)
-        const error = !(expresion.test(linea)) ? `Sintaxis incorrecta en la fila ${numeroLinea}`: undefined
-        
-        if(error) {
+        const error = !(expresion.test(linea)) ? `Sintaxis incorrecta en la fila ${numeroLinea}` : undefined
+
+        if (error) {
             erroresCompilacion.push(error)
-        } else{
-            resultado.push(transpilar(parser(lexer(linea))))
+        } else {
+            resultado.push(
+                `console.log(${transpilar(parser(lexer(linea)))})`)
         }
         numeroLinea++
     }
-    return {resultado, erroresCompilacion};
-}   
+    return { resultado, erroresCompilacion };
+}
 
-analizadorSintactico().then(({resultado, erroresCompilacion}) => {
+analizadorSintactico().then(({ resultado, erroresCompilacion }) => {
     console.log(resultado)
     console.log(erroresCompilacion)
-    if(erroresCompilacion.count > 0){
+    if (erroresCompilacion.count > 0) {
         console.error('Error de compilación: ', erroresCompilacion.join('\n'))
         return
-    }else{
+    } else {
         fs.writeFile('./salida.js', resultado.join('\n'), (err) => {
             if (err) {
                 console.error('Error al guardar la salida', err)
                 return
             }
             console.log("Compilación completa")
-        })    
+        })
     }
 }
 )
